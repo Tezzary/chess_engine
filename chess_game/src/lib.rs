@@ -56,10 +56,38 @@ impl Board {
         self.tiles[7][0] = Piece::Rook(Team::White);
         self.tiles[7][1] = Piece::Knight(Team::White);
         self.tiles[7][2] = Piece::Bishop(Team::White);
-        self.tiles[7][3] = Piece::King(Team::White);
-        self.tiles[7][4] = Piece::Queen(Team::White);
+        self.tiles[7][3] = Piece::Queen(Team::White);
+        self.tiles[7][4] = Piece::King(Team::White);
         self.tiles[7][5] = Piece::Bishop(Team::White);
         self.tiles[7][6] = Piece::Knight(Team::White);
         self.tiles[7][7] = Piece::Rook(Team::White);
+    }
+    pub fn to_string(&self) -> String{
+        let mut board_string: String = String::from("-----------------\n");
+        for row in &self.tiles {
+            board_string += "|";
+            for column in row {
+                let emoji = match column {
+                    Piece::King(Team::White) => "♚",
+                    Piece::Queen(Team::White) => "♛",
+                    Piece::Rook(Team::White) => "♜",
+                    Piece::Bishop(Team::White) => "♝",
+                    Piece::Knight(Team::White) => "♞",
+                    Piece::Pawn(Team::White) => "♟",
+                    Piece::King(Team::Black) => "♔",
+                    Piece::Queen(Team::Black) => "♕",
+                    Piece::Rook(Team::Black) => "♖",
+                    Piece::Bishop(Team::Black) => "♗",
+                    Piece::Knight(Team::Black) => "♘",
+                    Piece::Pawn(Team::Black) => "♙",
+                    _ => " ",
+                };
+                board_string += emoji;
+                board_string += "|";
+            }
+            board_string += "\n";
+        }
+        board_string += "-----------------";
+        board_string
     }
 }
