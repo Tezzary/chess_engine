@@ -1,5 +1,5 @@
 pub struct Board {
-    tiles: [[Piece; 8]; 8],
+    pub tiles: [[Piece; 8]; 8],
 }
 
 #[derive(Copy, Clone)]
