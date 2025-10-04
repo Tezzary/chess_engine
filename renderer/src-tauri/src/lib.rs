@@ -109,8 +109,15 @@ fn get_board(state: State<Arc<Mutex<chess_game::Board>>>) -> Vec<BoardSlot>{
 }
 
 #[tauri::command]
-fn move_piece() {
-    println!("moving piece");
+fn move_piece(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start_y: usize, end_x: usize, end_y: usize) {
+    if start_x == end_x && start_y == end_y {
+        return;
+    }
+    let mut board = state.lock().unwrap();
+    board.tiles[end_y][end_x] = board.tiles[start_y][start_x].clone();
+    board.tiles[start_y][start_x] = Piece::Blank;
+    println!("moved piece");
+    println!("{}", board.to_string())
 }
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -118,7 +125,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(board)
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![initial_setup, get_board])
+        .invoke_handler(tauri::generate_handler![initial_setup, get_board, move_piece])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

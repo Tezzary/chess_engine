@@ -22,14 +22,22 @@ function redraw_pieces() {
     piece.piece.style.left = (base_x + CELL_WIDTH * piece.pos.x + 2) + "px"
   }
 }
+
+function clamp(value) {
+  if (value > 7.5) {
+    return 7.5
+  }
+  if (value < -0.5) {
+    return -0.5
+  }
+  return value
+}
 async function update_board() {
   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  await invoke("initial_setup")
-  board = await invoke("get_board");
   
   for (let i in pieces) {
     let piece = pieces[i]
-    piece.piece.removeEventListener("mousedown")
+    //piece.piece.removeEventListener("mousedown")
     piece.piece.remove()
   }
   pieces = []
@@ -43,33 +51,46 @@ async function update_board() {
         piece: piece,
         pos: {x: i % 8, y: Math.floor(i / 8)}
       }
-      piece.addEventListener("mousedown", (e) => {
+      piece.addEventListener("mousedown", piece_mousedown) 
+      function piece_mousedown(e) {
         e.preventDefault()
+
+        piece.style.cursor = "grabbing"
+
         let start_x = piece_wrapper.pos.x
         let start_y = piece_wrapper.pos.y
         function mouse_move(mousemove_event) {
           console.log(mousemove_event.clientX)
           console.log(rect.left)
-          piece_wrapper.pos.x = (mousemove_event.clientX - rect.left) / CELL_WIDTH - 0.5
-          piece_wrapper.pos.y = (mousemove_event.clientY - rect.top) / CELL_WIDTH - 0.5
+          piece_wrapper.pos.x = clamp((mousemove_event.clientX - rect.left) / CELL_WIDTH - 0.5)
+          piece_wrapper.pos.y = clamp((mousemove_event.clientY - rect.top) / CELL_WIDTH - 0.5)
           redraw_pieces()
         }
         async function mouse_up() {
           document.removeEventListener("mousemove", mouse_move)
           document.removeEventListener("mouseup", mouse_up)
-          await invoke("move_piece")
+          piece.style.cursor = "grab"
+          await invoke("move_piece", {
+            startX: start_x,
+            startY: start_y,
+            endX: Math.round(piece_wrapper.pos.x),
+            endY: Math.round(piece_wrapper.pos.y),
+          })
+          board = await invoke("get_board")
+          update_board()
         }
         document.addEventListener("mousemove", mouse_move)
         document.addEventListener("mouseup", mouse_up)
-      })
+      }
       pieces.push(piece_wrapper)
       piece_container.appendChild(piece)
     }
+
   }
   redraw_pieces()
 }
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   container = document.getElementsByClassName("container")[0]
   piece_container = document.getElementsByClassName("piece_container")[0]
   rect = container.getBoundingClientRect()
@@ -94,6 +115,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
     container.appendChild(cell)
   }
+
+  await invoke("initial_setup")
+  board = await invoke("get_board");
+
   update_board();
 });
 
