@@ -12,8 +12,14 @@ struct BoardSlot{
     piece: String,
     team: String,
 }
+
 #[tauri::command]
-fn get_board(state: State<Arc<Mutex<chess_game::Board>>>) { 
+fn initial_setup(state: State<Arc<Mutex<chess_game::Board>>>) {
+    let mut board = state.lock().unwrap();
+    board.setup();
+}
+#[tauri::command]
+fn get_board(state: State<Arc<Mutex<chess_game::Board>>>) -> Vec<BoardSlot>{ 
     let board = state.lock().unwrap();
     let mut parsed_board: Vec<BoardSlot> = Vec::new();
     for row in &board.tiles {
@@ -31,13 +37,12 @@ fn get_board(state: State<Arc<Mutex<chess_game::Board>>>) {
                         team: String::from("White"),
                     });
                 },
-,
                 Piece::Rook(Team::White) => {
                     parsed_board.push(BoardSlot {
                         piece: String::from("Rook"),
                         team: String::from("White"),
                     });
-                }, , Piece::Bishop(Team::White) => { 
+                }, Piece::Bishop(Team::White) => { 
                     parsed_board.push(BoardSlot { 
                         piece: String::from("Bishop"), 
                         team: String::from("White"), 
@@ -100,6 +105,7 @@ fn get_board(state: State<Arc<Mutex<chess_game::Board>>>) {
             }
         }
     }
+    return parsed_board;
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -108,7 +114,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(board)
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![get_board])
+        .invoke_handler(tauri::generate_handler![initial_setup, get_board])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

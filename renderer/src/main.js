@@ -1,18 +1,32 @@
 const { invoke } = window.__TAURI__.core;
 
-let greetInputEl;
-let greetMsgEl;
+let board;
 
-async function greet() {
+async function update_board() {
   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsgEl.textContent = await invoke("greet", { name: greetInputEl.value });
+  await invoke("initial_setup")
+  let board = await invoke("get_board");
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
-  greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form").addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
-  });
+  let container = document.getElementsByClassName("container")[0]
+  for(let i = 0; i < 64; i+=1) {
+    let cell = document.createElement("div")
+    cell.classList.add("cell")
+    if (Math.floor(i / 8) % 2 == 0) {
+      if (i % 2 == 0) {
+        cell.classList.add("white")
+      } else {
+        cell.classList.add("black")
+      }
+    }
+    else {
+      if (i % 2 == 0) {
+        cell.classList.add("black")
+      } else {
+        cell.classList.add("white")
+      }
+    }
+    container.appendChild(cell)
+  }
 });
