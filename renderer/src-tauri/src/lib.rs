@@ -108,6 +108,10 @@ fn get_board(state: State<Arc<Mutex<chess_game::Board>>>) -> Vec<BoardSlot>{
     return parsed_board;
 }
 
+#[tauri::command]
+fn move_piece() {
+    println!("moving piece");
+}
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let board = Arc::new(Mutex::new(chess_game::Board::new()));

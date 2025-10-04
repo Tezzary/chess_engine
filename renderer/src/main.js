@@ -4,12 +4,14 @@ let board;
 let pieces;
 
 let piece_container;
+
 let container;
+let rect
 
 let CELL_WIDTH = 50;
 
 function redraw_pieces() {
-  let rect = container.getBoundingClientRect()
+  rect = container.getBoundingClientRect()
   let base_x = rect.left
   let base_y = rect.top
   console.log("redrawing")
@@ -27,6 +29,7 @@ async function update_board() {
   
   for (let i in pieces) {
     let piece = pieces[i]
+    piece.piece.removeEventListener("mousedown")
     piece.piece.remove()
   }
   pieces = []
@@ -40,6 +43,25 @@ async function update_board() {
         piece: piece,
         pos: {x: i % 8, y: Math.floor(i / 8)}
       }
+      piece.addEventListener("mousedown", (e) => {
+        e.preventDefault()
+        let start_x = piece_wrapper.pos.x
+        let start_y = piece_wrapper.pos.y
+        function mouse_move(mousemove_event) {
+          console.log(mousemove_event.clientX)
+          console.log(rect.left)
+          piece_wrapper.pos.x = (mousemove_event.clientX - rect.left) / CELL_WIDTH - 0.5
+          piece_wrapper.pos.y = (mousemove_event.clientY - rect.top) / CELL_WIDTH - 0.5
+          redraw_pieces()
+        }
+        async function mouse_up() {
+          document.removeEventListener("mousemove", mouse_move)
+          document.removeEventListener("mouseup", mouse_up)
+          await invoke("move_piece")
+        }
+        document.addEventListener("mousemove", mouse_move)
+        document.addEventListener("mouseup", mouse_up)
+      })
       pieces.push(piece_wrapper)
       piece_container.appendChild(piece)
     }
@@ -50,6 +72,8 @@ async function update_board() {
 window.addEventListener("DOMContentLoaded", () => {
   container = document.getElementsByClassName("container")[0]
   piece_container = document.getElementsByClassName("piece_container")[0]
+  rect = container.getBoundingClientRect()
+
   for(let i = 0; i < 64; i+=1) {
     let cell = document.createElement("div")
     cell.classList.add("cell")
@@ -72,3 +96,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   update_board();
 });
+
+window.addEventListener("resize", () => {
+  redraw_pieces()
+})
