@@ -1,24 +1,9 @@
-pub struct Board {
-    pub tiles: [[Piece; 8]; 8],
-}
+mod types;
+use types::{Board, Team, GameMove};
+mod pieces;
+use pieces::Piece;
 
-#[derive(Copy, Clone)]
-pub enum Team {
-    White,
-    Black,
-}
-
-#[derive(Copy, Clone)]
-pub enum Piece {
-    King(Team),
-    Queen(Team),
-    Rook(Team),
-    Bishop(Team),
-    Knight(Team),
-    Pawn(Team),
-    Blank,
-}
-
+use std::result::Result;
 impl Board {
     pub fn new() -> Board {
         Board {
@@ -61,6 +46,29 @@ impl Board {
         self.tiles[7][5] = Piece::Bishop(Team::White);
         self.tiles[7][6] = Piece::Knight(Team::White);
         self.tiles[7][7] = Piece::Rook(Team::White);
+    }
+    pub fn get_all_game_moves(&self) -> Vec<GameMove> {
+        let valid_moves = Vec::new();
+        return valid_moves;
+        let piece = self.tiles[start_y][start_x];
+        if piece == Piece::Blank {
+            return valid_moves;
+        }
+
+        valid_moves
+    }
+    pub fn get_piece_game_moves(&self, start_x: usize, start_y: usize) -> Result<Vec<GameMove>, ()> {
+        let piece = self.tiles[start_y][start_x];
+        if piece == Piece::Blank {
+            return Err(()) 
+        }
+        Ok(piece.get_valid_moves(self, start_x as i64, start_y as i64))
+    }
+    //trusts that game_move is a valid move and already been checked
+    pub fn make_move(&mut self, game_move: GameMove) -> bool {
+        self.tiles[game_move.end_y][game_move.end_x] = self.tiles[game_move.start_y][game_move.start_x];
+        self.tiles[game_move.start_y][game_move.start_x] = Piece::Blank;
+        true
     }
     pub fn to_string(&self) -> String{
         let mut board_string: String = String::from("-----------------\n");

@@ -114,8 +114,18 @@ fn move_piece(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start
         return;
     }
     let mut board = state.lock().unwrap();
-    board.tiles[end_y][end_x] = board.tiles[start_y][start_x].clone();
-    board.tiles[start_y][start_x] = Piece::Blank;
+    let game_moves = board.get_game_moves(start_x, start_y);
+    for game_move in game_moves {
+        if game_move.end_x != end_x {
+            continue;
+        }
+        if game_move.end_y != end_y {
+            continue;
+        }
+        //valid move requested
+        board.make_move(game_move);
+        return;
+    }
     println!("moved piece");
     println!("{}", board.to_string())
 }
