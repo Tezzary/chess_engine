@@ -18,6 +18,9 @@ pub fn is_valid_tile(team: &types::Team, board: &types::Board, x: usize, y: usiz
 impl Piece {
     pub fn get_valid_moves(&self, board: &types::Board, start_x: i64, start_y: i64) -> Vec<types::GameMove> {
         let mut valid_moves = Vec::<types::GameMove>::new();
+
+        //NEED TO ENSURE TO RETURN NO MOVES IF CURRENT PIECE ISNT KING AND IN CHECK
+        
         match self {
             Piece::King(team) => {
                //also need to account for not allowing to move into check

@@ -47,14 +47,11 @@ impl Board {
         self.tiles[7][6] = Piece::Knight(Team::White);
         self.tiles[7][7] = Piece::Rook(Team::White);
     }
+    pub fn get_piece(&self, x: usize, y: usize) -> Piece {
+        self.tiles[y][x]
+    }
     pub fn get_all_game_moves(&self) -> Vec<GameMove> {
         let valid_moves = Vec::new();
-        return valid_moves;
-        let piece = self.tiles[start_y][start_x];
-        if piece == Piece::Blank {
-            return valid_moves;
-        }
-
         valid_moves
     }
     pub fn get_piece_game_moves(&self, start_x: usize, start_y: usize) -> Result<Vec<GameMove>, ()> {
