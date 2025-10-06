@@ -48,11 +48,9 @@ impl Piece {
                     if *team == Team::White {
                         //must do check diagonal takes
                         //must do en_passant
-                        println!("starting checks");
                         if !is_valid_tile(team, &board, start_x, start_y-1) {
                             break 'outer; 
                         }
-                        println!("valid 1");
                         valid_moves.push(GameMove{ 
                             start_x: start_x as usize,
                             start_y: start_y as usize,
@@ -65,7 +63,6 @@ impl Piece {
                         if !is_valid_tile(team, &board, start_x, start_y-2) {
                             break 'outer; 
                         }
-                        println!("valid 2");
                         valid_moves.push(GameMove{ 
                             start_x: start_x as usize,
                             start_y: start_y as usize,
