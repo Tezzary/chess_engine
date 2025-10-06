@@ -1,10 +1,13 @@
 
 use crate::types;
-pub use types::Piece;
+pub use types::{Piece, Team, GameMove, Board};
 
 
-pub fn is_valid_tile(team: &types::Team, board: &types::Board, x: usize, y: usize) -> bool {
-    match &board.tiles[y][x] {
+pub fn is_valid_tile(team: &Team, board: &Board, x: i64, y: i64) -> bool {
+    if x < 0 || x > 7 || y < 0 || y > 7{
+        return false;
+    }
+    match &board.get_piece(x as usize, y as usize){
         Piece::Blank => true,
         Piece::King(piece_team)
         | Piece::Queen(piece_team)
@@ -16,31 +19,89 @@ pub fn is_valid_tile(team: &types::Team, board: &types::Board, x: usize, y: usiz
 }
 
 impl Piece {
-    pub fn get_valid_moves(&self, board: &types::Board, start_x: i64, start_y: i64) -> Vec<types::GameMove> {
-        let mut valid_moves = Vec::<types::GameMove>::new();
+    pub fn get_valid_moves(&self, board: &Board, start_x: i64, start_y: i64) -> Vec<GameMove> {
+        let mut valid_moves = Vec::<GameMove>::new();
 
         //NEED TO ENSURE TO RETURN NO MOVES IF CURRENT PIECE ISNT KING AND IN CHECK
-        
-        match self {
-            Piece::King(team) => {
-               //also need to account for not allowing to move into check
-               for y in -1..=1 {
-                    for x in -1..=1 {
-                        if y == 0 && x == 0 { //dont allow move to same tile
-                            continue;
+        'outer: {
+            match self {
+                Piece::King(team) => {
+                   //also need to account for not allowing to move into check
+                   for y in -1..=1 {
+                        for x in -1..=1 {
+                            if y == 0 && x == 0 { //dont allow move to same tile
+                                continue;
+                            }
+                            if !is_valid_tile(team, &board, start_x+x, start_y+y) {
+                                continue;
+                            }
+                            valid_moves.push(GameMove{
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: (start_x + x) as usize,
+                                end_y: (start_y + y) as usize,
+                            })
                         }
-                        is_valid_tile(team, &board, x as usize, y as usize);
-                        valid_moves.push(types::GameMove{
+                   }
+                }
+                Piece::Pawn(team) => {
+                    if *team == Team::White {
+                        //must do check diagonal takes
+                        //must do en_passant
+                        println!("starting checks");
+                        if !is_valid_tile(team, &board, start_x, start_y-1) {
+                            break 'outer; 
+                        }
+                        println!("valid 1");
+                        valid_moves.push(GameMove{ 
                             start_x: start_x as usize,
                             start_y: start_y as usize,
-                            end_x: (start_x + x) as usize,
-                            end_y: (start_y + y) as usize,
-                        })
+                            end_x: start_x as usize,
+                            end_y: (start_y - 1) as usize,
+                        });
+                        if start_y != 6 { //second bottom rank
+                            break 'outer; 
+                        }
+                        if !is_valid_tile(team, &board, start_x, start_y-2) {
+                            break 'outer; 
+                        }
+                        println!("valid 2");
+                        valid_moves.push(GameMove{ 
+                            start_x: start_x as usize,
+                            start_y: start_y as usize,
+                            end_x: start_x as usize,
+                            end_y: (start_y - 2) as usize,
+                        });
                     }
-               }
-            }
-            _ => {
+                    else {
+                        //must do check diagonal takes
+                        //must do en_passant
+                        if !is_valid_tile(team, &board, start_x, start_y+1) {
+                            break 'outer; 
+                        }
+                        valid_moves.push(GameMove{ 
+                            start_x: start_x as usize,
+                            start_y: start_y as usize,
+                            end_x: start_x as usize,
+                            end_y: (start_y + 1) as usize,
+                        });
+                        if start_y != 1 { //second bottom rank
+                            break 'outer; 
+                        }
+                        if !is_valid_tile(team, &board, start_x, start_y+2) {
+                            break 'outer; 
+                        }
+                        valid_moves.push(GameMove{ 
+                            start_x: start_x as usize,
+                            start_y: start_y as usize,
+                            end_x: start_x as usize,
+                            end_y: (start_y + 2) as usize,
+                        });
+                    }
+                }
+                _ => {
 
+                }
             }
         }
         valid_moves

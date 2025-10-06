@@ -1,7 +1,6 @@
 mod types;
-use types::{Board, Team, GameMove};
+pub use types::{Board, Piece, Team, GameMove};
 mod pieces;
-use pieces::Piece;
 
 use std::result::Result;
 impl Board {

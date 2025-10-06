@@ -115,7 +115,7 @@ fn move_piece(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start
     }
     let mut board = state.lock().unwrap();
     let piece = board.get_piece(start_x, start_y);
-    let game_moves = piece.get_valid_moves(board, start_x, start_y);
+    let game_moves = piece.get_valid_moves(&board, start_x as i64, start_y as i64);
     for game_move in game_moves {
         if game_move.end_x != end_x {
             continue;
