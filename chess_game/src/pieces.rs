@@ -2,23 +2,39 @@
 use crate::types;
 pub use types::{Piece, Team, GameMove, Board};
 
-
-pub fn is_valid_tile(team: &Team, board: &Board, x: i64, y: i64) -> bool {
+pub fn is_empty_tile(board: &Board, x: i64, y: i64) -> bool {
     if x < 0 || x > 7 || y < 0 || y > 7{
         return false;
     }
-    match &board.get_piece(x as usize, y as usize){
-        Piece::Blank => true,
-        Piece::King(piece_team)
-        | Piece::Queen(piece_team)
-        | Piece::Rook(piece_team)
-        | Piece::Bishop(piece_team)
-        | Piece::Knight(piece_team)
-        | Piece::Pawn(piece_team) => team != piece_team,
+    let piece = board.get_piece(x as usize, y as usize);
+    if piece == Piece::Blank {
+        return true;
     }
+    
+    return false;
+
 }
 
+pub fn is_opposing_piece(team: &Team, board: &Board, x: i64, y: i64) -> bool {
+    if x < 0 || x > 7 || y < 0 || y > 7{
+        return false;
+    }
+    return !board.get_piece(x as usize, y as usize).on_team(team);
+}
+
+
 impl Piece {
+    pub fn on_team(&self, team: &Team) -> bool {
+        match self{
+            Piece::Blank => true,
+            Piece::King(piece_team)
+            | Piece::Queen(piece_team)
+            | Piece::Rook(piece_team)
+            | Piece::Bishop(piece_team)
+            | Piece::Knight(piece_team)
+            | Piece::Pawn(piece_team) => team == piece_team,
+        }
+    }
     pub fn get_valid_moves(&self, board: &Board, start_x: i64, start_y: i64) -> Vec<GameMove> {
         let mut valid_moves = Vec::<GameMove>::new();
 
@@ -32,7 +48,7 @@ impl Piece {
                             if y == 0 && x == 0 { //dont allow move to same tile
                                 continue;
                             }
-                            if !is_valid_tile(team, &board, start_x+x, start_y+y) {
+                            if !is_empty_tile(&board, start_x+x, start_y+y) && !is_opposing_piece(team, &board, start_x+x, start_y+y) {
                                 continue;
                             }
                             valid_moves.push(GameMove{
@@ -47,8 +63,9 @@ impl Piece {
                 Piece::Pawn(team) => {
                     if *team == Team::White {
                         //must do check diagonal takes
-                        //must do en_passant
-                        if !is_valid_tile(team, &board, start_x, start_y-1) {
+                        //must do en_passant and somehow check if turn was just done as thats only
+                        //time enpassant allowed
+                        if !is_empty_tile(&board, start_x, start_y-1) {
                             break 'outer; 
                         }
                         valid_moves.push(GameMove{ 
@@ -60,7 +77,7 @@ impl Piece {
                         if start_y != 6 { //second bottom rank
                             break 'outer; 
                         }
-                        if !is_valid_tile(team, &board, start_x, start_y-2) {
+                        if !is_empty_tile(&board, start_x, start_y-2) {
                             break 'outer; 
                         }
                         valid_moves.push(GameMove{ 
@@ -73,7 +90,8 @@ impl Piece {
                     else {
                         //must do check diagonal takes
                         //must do en_passant
-                        if !is_valid_tile(team, &board, start_x, start_y+1) {
+
+                        if !is_empty_tile(&board, start_x, start_y+1) {
                             break 'outer; 
                         }
                         valid_moves.push(GameMove{ 
@@ -85,7 +103,7 @@ impl Piece {
                         if start_y != 1 { //second bottom rank
                             break 'outer; 
                         }
-                        if !is_valid_tile(team, &board, start_x, start_y+2) {
+                        if !is_empty_tile(&board, start_x, start_y+2) {
                             break 'outer; 
                         }
                         valid_moves.push(GameMove{ 
