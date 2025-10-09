@@ -18,6 +18,7 @@ fn initial_setup(state: State<Arc<Mutex<chess_game::Board>>>) {
     let mut board = state.lock().unwrap();
     board.setup();
 }
+
 #[tauri::command]
 fn get_board(state: State<Arc<Mutex<chess_game::Board>>>) -> Vec<BoardSlot>{ 
     let board = state.lock().unwrap();
@@ -149,11 +150,11 @@ fn move_piece(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start
             continue;
         }
         //valid move requested
+        println!("moved piece");
+        println!("{}", board.to_string());
         board.make_move(game_move);
         return;
     }
-    println!("moved piece");
-    println!("{}", board.to_string())
 }
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {

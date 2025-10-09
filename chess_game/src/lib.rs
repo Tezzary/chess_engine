@@ -2,14 +2,26 @@ mod types;
 pub use types::{Board, Piece, Team, GameMove};
 mod pieces;
 
-use std::result::Result;
-
 impl Board {
 
     pub fn new() -> Board {
         Board {
             tiles: [[Piece::Blank; 8]; 8], //fills tiles with 0's
             current_turn: Team::White,
+
+            last_moved_x: 0,
+            last_moved_y: 0,
+
+            castle_queen_white: true,
+            castle_king_white: true,
+            castle_queen_black: true,
+            castle_king_black: true,
+
+            king_white_x: 0,
+            king_white_y: 0,
+            king_black_x: 0,
+            king_black_y: 0,
+            
         }
     }
 
@@ -49,6 +61,12 @@ impl Board {
         self.tiles[7][5] = Piece::Bishop(Team::White);
         self.tiles[7][6] = Piece::Knight(Team::White);
         self.tiles[7][7] = Piece::Rook(Team::White);
+
+        self.king_black_x = 4;
+        self.king_black_y = 0;
+
+        self.king_white_x = 4;
+        self.king_white_y = 7;
     }
 
     fn switch_turn(&mut self) {
@@ -64,30 +82,91 @@ impl Board {
         self.tiles[y][x]
     }
 
+    //not implemented yet
     pub fn get_all_game_moves(&self) -> Vec<GameMove> {
-        let valid_moves = Vec::new();
+        let mut valid_moves = Vec::new();
+        for y in 0..7 {
+            for x in 0..7 {
+                let piece = self.get_piece(x, y);
+                if piece.on_team(&self.current_turn) {
+                    let piece_valid_moves = piece.get_valid_moves(&self, x as i64, y as i64);
+                    valid_moves.extend_from_slice(&piece_valid_moves);
+                }
+            }
+        }
         valid_moves
-    }
-
-    pub fn get_piece_game_moves(&mut self, start_x: usize, start_y: usize) -> Result<Vec<GameMove>, ()> {
-        let piece = self.tiles[start_y][start_x];
-        if !piece.on_team(&self.current_turn) {
-            return Err(())
-        }
-        if piece == Piece::Blank {
-            return Err(()) 
-        }
-
-        self.switch_turn();
-        
-        Ok(piece.get_valid_moves(self, start_x as i64, start_y as i64))
     }
 
     //trusts that game_move is a valid move and already been checked
     pub fn make_move(&mut self, game_move: GameMove) -> bool {
-        self.tiles[game_move.end_y][game_move.end_x] = self.tiles[game_move.start_y][game_move.start_x];
+
+        let piece = self.tiles[game_move.start_y][game_move.start_x];
+
+        if piece == Piece::King(Team::White) {
+            self.castle_queen_white = false;
+            self.castle_king_white = false;
+            self.king_white_x = game_move.end_x;
+            self.king_white_y = game_move.end_y;
+        }
+        if piece == Piece::King(Team::Black) {
+            self.castle_queen_black = false;
+            self.castle_king_black = false;
+            self.king_black_x = game_move.end_x;
+            self.king_black_y = game_move.end_y;
+        }
+
+        if piece == Piece::Rook(Team::White) && game_move.start_x == 0 && game_move.start_y == 7 {
+            self.castle_queen_white = false;
+        }
+        if piece == Piece::Rook(Team::White) && game_move.start_x == 7 && game_move.start_y == 7 {
+            self.castle_king_white = false;
+        }
+
+        if piece == Piece::Rook(Team::Black) && game_move.start_x == 0 && game_move.start_y == 0 {
+            self.castle_queen_black = false;
+        }
+        if piece == Piece::Rook(Team::Black) && game_move.start_x == 7 && game_move.start_y == 0 {
+            self.castle_king_black = false;
+        }
+
+        
+
+        self.tiles[game_move.end_y][game_move.end_x] = piece;
         self.tiles[game_move.start_y][game_move.start_x] = Piece::Blank;
-        true
+
+
+
+        self.last_moved_x = game_move.end_x;
+        self.last_moved_y = game_move.end_y;
+
+        self.switch_turn();
+
+        if self.current_turn == Team::White {
+            let king_piece = self.get_piece(self.king_white_x, self.king_white_y);
+            let in_check = pieces::in_check(&self.current_turn, &self); 
+            if in_check { //important to check this first otherwise will lead to infinite
+                          //recursion, king dancing around board
+                let king_has_no_valid_moves = king_piece.get_valid_moves(&self, self.king_white_x as i64, self.king_white_y as i64).len() == 0; 
+                if  in_check && king_has_no_valid_moves && self.get_all_game_moves().len() == 0 {
+                    self.setup();
+                    return true;
+                }
+            }
+        }
+        else {
+            let king_piece = self.get_piece(self.king_black_x, self.king_black_y);
+            let in_check = pieces::in_check(&self.current_turn, &self);
+            if in_check {
+                let king_has_no_valid_moves = king_piece.get_valid_moves(&self, self.king_black_x as i64, self.king_black_y as i64).len() == 0;
+                if  in_check && king_has_no_valid_moves && self.get_all_game_moves().len() == 0 {
+                    self.setup();
+                    return true;
+                }
+            }
+        }
+
+        //check for checkmate
+        false
     }
 
     pub fn to_string(&self) -> String{

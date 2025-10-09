@@ -17,13 +17,26 @@ pub enum Piece {
     Blank,
 }
 
-
+#[derive(Clone)]
 pub struct Board {
     pub tiles: [[Piece; 8]; 8],
     pub current_turn: Team,
+
+    pub last_moved_x: usize,
+    pub last_moved_y: usize,
+
+    pub castle_queen_white: bool,
+    pub castle_king_white: bool,
+    pub castle_queen_black: bool,
+    pub castle_king_black: bool,
+
+    pub king_white_x: usize,
+    pub king_white_y: usize,
+    pub king_black_x: usize,
+    pub king_black_y: usize,
 }
 
-
+#[derive(Clone)]
 pub struct GameMove {
     //piece: Piece,
     pub start_x: usize,
