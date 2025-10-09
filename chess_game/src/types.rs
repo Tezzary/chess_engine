@@ -20,6 +20,7 @@ pub enum Piece {
 
 pub struct Board {
     pub tiles: [[Piece; 8]; 8],
+    pub current_turn: Team,
 }
 
 

@@ -1,7 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use chess_game;
-use chess_game::{Piece, Team};
+use chess_game::{GameMove, Piece, Team};
 use serde::Serialize;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -108,6 +108,31 @@ fn get_board(state: State<Arc<Mutex<chess_game::Board>>>) -> Vec<BoardSlot>{
     return parsed_board;
 }
 
+#[derive(Serialize)]
+struct SendableGameMoves {
+    x: usize,
+    y: usize
+}
+
+#[tauri::command]
+fn get_possible_moves(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start_y: usize) -> Vec<SendableGameMoves> {
+    let board = state.lock().unwrap(); 
+
+    let piece = board.get_piece(start_x, start_y);
+    let game_moves = piece.get_valid_moves(&board, start_x as i64, start_y as i64);
+    
+    let mut sendable_game_moves = Vec::new();
+    for game_move in game_moves {
+        sendable_game_moves.push(SendableGameMoves{
+            x: game_move.end_x,
+            y: game_move.end_y
+        });
+    }
+    
+    return sendable_game_moves;
+}
+
+
 #[tauri::command]
 fn move_piece(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start_y: usize, end_x: usize, end_y: usize) {
     if start_x == end_x && start_y == end_y {
@@ -136,7 +161,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(board)
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![initial_setup, get_board, move_piece])
+        .invoke_handler(tauri::generate_handler![initial_setup, get_board, move_piece, get_possible_moves])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

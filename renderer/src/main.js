@@ -6,7 +6,10 @@ let pieces;
 let piece_container;
 
 let container;
+let cells = [];
 let rect
+
+let possible_moves;
 
 let CELL_WIDTH = 50;
 
@@ -32,6 +35,23 @@ function clamp(value) {
   }
   return value
 }
+
+function reset_background() {
+  for (let i = 0; i < cells.length; i++) {
+    let cell = cells[i];
+    cell.classList.remove("highlighter")
+  }
+}
+function highlight_background() {
+  for (let i = 0; i < possible_moves.length; i++) {
+    console.log(i)
+    let move = possible_moves[i]
+    console.log(move)
+    console.log(cells[move.y * 8 + move.x])
+    cells[move.y * 8 + move.x].classList.add("highlighter")
+  }
+}
+
 async function update_board() {
   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
   
@@ -52,13 +72,17 @@ async function update_board() {
         pos: {x: i % 8, y: Math.floor(i / 8)}
       }
       piece.addEventListener("mousedown", piece_mousedown) 
-      function piece_mousedown(e) {
+      async function piece_mousedown(e) {
         e.preventDefault()
 
         piece.style.cursor = "grabbing"
 
         let start_x = piece_wrapper.pos.x
         let start_y = piece_wrapper.pos.y
+
+        possible_moves = await invoke("get_possible_moves", {startX: start_x, startY: start_y})
+        highlight_background()
+
         function mouse_move(mousemove_event) {
           console.log(mousemove_event.clientX)
           console.log(rect.left)
@@ -69,6 +93,7 @@ async function update_board() {
         async function mouse_up() {
           document.removeEventListener("mousemove", mouse_move)
           document.removeEventListener("mouseup", mouse_up)
+          reset_background()
           piece.style.cursor = "grab"
           await invoke("move_piece", {
             startX: start_x,
@@ -112,7 +137,8 @@ window.addEventListener("DOMContentLoaded", async () => {
         cell.classList.add("white")
       }
     }
-
+    
+    cells.push(cell)
     container.appendChild(cell)
   }
 
