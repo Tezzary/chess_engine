@@ -34,7 +34,6 @@ pub fn is_empty_or_opposing_tile(team: &Team, board: &Board, x: i64, y: i64) -> 
 
 pub fn tile_is_under_attack(current_team: &Team, board: &Board, x: i64, y: i64) -> bool {
     //check pawns
-    println!("called");
     if *current_team == Team::White {
         if in_board(x + 1, y - 1) {
             let piece = board.get_piece(x as usize + 1, y as usize - 1);
@@ -233,6 +232,7 @@ impl Piece {
                                     start_y: start_y as usize,
                                     end_x: (start_x + 2) as usize,
                                     end_y: (start_y) as usize,
+                                    promote_to: Piece::Blank,
                                 };
                                 valid_moves.push(game_move);
                             }
@@ -248,6 +248,7 @@ impl Piece {
                                     start_y: start_y as usize,
                                     end_x: (start_x + 2) as usize,
                                     end_y: (start_y) as usize,
+                                    promote_to: Piece::Blank,
                                 };
                                 valid_moves.push(game_move);
                             }
@@ -263,6 +264,7 @@ impl Piece {
                                     start_y: start_y as usize,
                                     end_x: (start_x - 2) as usize,
                                     end_y: (start_y) as usize,
+                                    promote_to: Piece::Blank,
                                 };
                                 valid_moves.push(game_move);
                             }
@@ -278,6 +280,7 @@ impl Piece {
                                     start_y: start_y as usize,
                                     end_x: (start_x - 2) as usize,
                                     end_y: (start_y) as usize,
+                                    promote_to: Piece::Blank,
                                 };
                                 valid_moves.push(game_move);
                             }
@@ -301,6 +304,7 @@ impl Piece {
                                 start_y: start_y as usize,
                                 end_x: (start_x + x) as usize,
                                 end_y: (start_y + y) as usize,
+                                promote_to: Piece::Blank,
                             };
                             let safe = try_move(board, &game_move); 
                             if safe {
@@ -325,6 +329,7 @@ impl Piece {
                                     start_y: start_y as usize,
                                     end_x: (start_x + x*mult) as usize,
                                     end_y: (start_y + y*mult) as usize,
+                                    promote_to: Piece::Blank,
                                 };
                                 let safe = try_move(board, &game_move); 
                                 if safe {
@@ -353,6 +358,7 @@ impl Piece {
                                     start_y: start_y as usize,
                                     end_x: (start_x + x*mult) as usize,
                                     end_y: (start_y + y*mult) as usize,
+                                    promote_to: Piece::Blank,
                                 };
                                 let safe = try_move(board, &game_move); 
                                 if safe {
@@ -383,6 +389,7 @@ impl Piece {
                                         start_y: start_y as usize,
                                         end_x: (start_x + x) as usize,
                                         end_y: (start_y + y) as usize,
+                                        promote_to: Piece::Blank,
                                     };
                                     let safe = try_move(board, &game_move); 
                                     if safe {
@@ -411,6 +418,7 @@ impl Piece {
                                     start_y: start_y as usize,
                                     end_x: (start_x + x*mult) as usize,
                                     end_y: (start_y + y*mult) as usize,
+                                    promote_to: Piece::Blank,
                                 };
                                 let safe = try_move(board, &game_move); 
                                 if safe {
@@ -440,6 +448,7 @@ impl Piece {
                                 start_y: start_y as usize,
                                 end_x: (start_x - 1) as usize,
                                 end_y: (start_y - 1) as usize,
+                                promote_to: Piece::Blank,
                             };
                             let safe = try_move(board, &game_move); 
                             if safe {
@@ -459,28 +468,78 @@ impl Piece {
                                 start_y: start_y as usize,
                                 end_x: (start_x + 1) as usize,
                                 end_y: (start_y - 1) as usize,
+                                promote_to: Piece::Blank,
                             };
                             let safe = try_move(board, &game_move); 
                             if safe {
                                 valid_moves.push(game_move);
                             }
                         }
-                        //must do en_passant and somehow check if turn was just done as thats only
-                        
-                        //time enpassant allowed
+
                         if !is_empty_tile(&board, start_x, start_y-1) {
                             break 'outer; 
                         }
-                        let game_move = GameMove{ 
-                            start_x: start_x as usize,
-                            start_y: start_y as usize,
-                            end_x: start_x as usize,
-                            end_y: (start_y - 1) as usize,
-                        };
-                        let safe = try_move(board, &game_move); 
-                        if safe {
+
+                        if start_y - 1 == 0 {
+                            //promotion handling
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y - 1) as usize,
+                                promote_to: Piece::Queen(Team::White),
+                            };
+
+                            let safe = try_move(board, &game_move); 
+                            if safe {
+                                valid_moves.push(game_move);
+                            }
+                            //one is safe dont need to check rest
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y - 1) as usize,
+                                promote_to: Piece::Rook(Team::White),
+                            };
+                            valid_moves.push(game_move);
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y - 1) as usize,
+                                promote_to: Piece::Rook(Team::White),
+                            };
+                            valid_moves.push(game_move);
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y - 1) as usize,
+                                promote_to: Piece::Rook(Team::White),
+                            };
                             valid_moves.push(game_move);
                         }
+                        else {
+                            //standard one tile forward move
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y - 1) as usize,
+                                promote_to: Piece::Blank,
+                            };
+
+                            let safe = try_move(board, &game_move); 
+                            if safe {
+                                valid_moves.push(game_move);
+                            }
+
+                        }
+
+
+
+
                         if start_y != 6 { //second bottom rank
                             break 'outer; 
                         }
@@ -492,6 +551,7 @@ impl Piece {
                             start_y: start_y as usize,
                             end_x: start_x as usize,
                             end_y: (start_y - 2) as usize,
+                            promote_to: Piece::Blank,
                         };
                         let safe = try_move(board, &game_move); 
                         if safe {
@@ -511,6 +571,7 @@ impl Piece {
                                 start_y: start_y as usize,
                                 end_x: (start_x - 1) as usize,
                                 end_y: (start_y + 1) as usize,
+                                promote_to: Piece::Blank,
                             };
                             let safe = try_move(board, &game_move); 
                             if safe {
@@ -530,6 +591,7 @@ impl Piece {
                                 start_y: start_y as usize,
                                 end_x: (start_x + 1) as usize,
                                 end_y: (start_y + 1) as usize,
+                                promote_to: Piece::Blank,
                             };
                             let safe = try_move(board, &game_move); 
                             if safe {
@@ -541,16 +603,61 @@ impl Piece {
                         if !is_empty_tile(&board, start_x, start_y+1) {
                             break 'outer; 
                         }
-                        let game_move = GameMove{ 
-                            start_x: start_x as usize,
-                            start_y: start_y as usize,
-                            end_x: start_x as usize,
-                            end_y: (start_y + 1) as usize,
-                        };
-                        let safe = try_move(board, &game_move); 
-                        if safe {
+                        if start_y + 1 == 7 {
+                            //promotion handling
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y + 1) as usize,
+                                promote_to: Piece::Queen(Team::Black),
+                            };
+
+                            let safe = try_move(board, &game_move); 
+                            if safe {
+                                valid_moves.push(game_move);
+                            }
+                            //one is safe dont need to check rest
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y + 1) as usize,
+                                promote_to: Piece::Rook(Team::Black),
+                            };
+                            valid_moves.push(game_move);
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y + 1) as usize,
+                                promote_to: Piece::Rook(Team::Black),
+                            };
+                            valid_moves.push(game_move);
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y + 1) as usize,
+                                promote_to: Piece::Rook(Team::Black),
+                            };
                             valid_moves.push(game_move);
                         }
+                        else {
+                            //standard one tile forward move
+                            let game_move = GameMove{ 
+                                start_x: start_x as usize,
+                                start_y: start_y as usize,
+                                end_x: start_x as usize,
+                                end_y: (start_y + 1) as usize,
+                                promote_to: Piece::Blank,
+                            };
+                            let safe = try_move(board, &game_move); 
+                            if safe {
+                                valid_moves.push(game_move);
+                            }
+                        }
+
                         if start_y != 1 { //second bottom rank
                             break 'outer; 
                         }
@@ -562,6 +669,7 @@ impl Piece {
                             start_y: start_y as usize,
                             end_x: start_x as usize,
                             end_y: (start_y + 2) as usize,
+                            promote_to: Piece::Blank,
                         };
                         let safe = try_move(board, &game_move); 
                         if safe {

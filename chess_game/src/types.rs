@@ -45,4 +45,5 @@ pub struct GameMove {
     pub start_y: usize,
     pub end_x: usize,
     pub end_y: usize,
+    pub promote_to: Piece
 }
