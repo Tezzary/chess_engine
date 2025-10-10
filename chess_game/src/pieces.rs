@@ -427,11 +427,14 @@ impl Piece {
 
                 Piece::Pawn(team) => {
                     if *team == Team::White {
-                        //must do check diagonal takes
-                        
+                        let take_diagonal = is_opposing_piece(team, &board, start_x-1, start_y-1);
+                        let en_passant = board.can_en_passant &&
+                            board.last_moved_x as i64 == start_x-1 && 
+                            board.last_moved_y as i64 == start_y && in_board(start_x-1, start_y) && 
+                            matches!(board.get_piece((start_x-1) as usize, start_y as usize), Piece::Pawn(_));
 
-                        
-                        if is_opposing_piece(team, &board, start_x-1, start_y-1) {
+
+                        if take_diagonal || en_passant {
                             let game_move = GameMove {
                                 start_x: start_x as usize,
                                 start_y: start_y as usize,
@@ -443,7 +446,14 @@ impl Piece {
                                 valid_moves.push(game_move);
                             }
                         }
-                        if is_opposing_piece(team, &board, start_x+1, start_y-1) {
+
+                        let take_diagonal = is_opposing_piece(team, &board, start_x+1, start_y-1);
+                        let en_passant = board.can_en_passant &&
+                            board.last_moved_x as i64 == start_x+1 && 
+                            board.last_moved_y as i64 == start_y && in_board(start_x+1, start_y) && 
+                            matches!(board.get_piece((start_x+1) as usize, start_y as usize), Piece::Pawn(_));
+
+                        if take_diagonal || en_passant {
                             let game_move = GameMove {
                                 start_x: start_x as usize,
                                 start_y: start_y as usize,
@@ -489,8 +499,13 @@ impl Piece {
                         }
                     }
                     else {
-                        //must do check diagonal takes
-                        if is_opposing_piece(team, &board, start_x-1, start_y+1) {
+                        let take_diagonal = is_opposing_piece(team, &board, start_x-1, start_y+1);
+                        let en_passant = board.can_en_passant &&
+                            board.last_moved_x as i64 == start_x-1 && 
+                            board.last_moved_y as i64 == start_y && in_board(start_x-1, start_y) && 
+                            matches!(board.get_piece((start_x-1) as usize, start_y as usize), Piece::Pawn(_));
+
+                        if take_diagonal || en_passant {
                             let game_move = GameMove {
                                 start_x: start_x as usize,
                                 start_y: start_y as usize,
@@ -502,7 +517,14 @@ impl Piece {
                                 valid_moves.push(game_move);
                             }
                         }
-                        if is_opposing_piece(team, &board, start_x+1, start_y+1) {
+                        
+                        let take_diagonal = is_opposing_piece(team, &board, start_x+1, start_y+1);
+                        let en_passant = board.can_en_passant &&
+                            board.last_moved_x as i64 == start_x+1 && 
+                            board.last_moved_y as i64 == start_y && in_board(start_x+1, start_y) && 
+                            matches!(board.get_piece((start_x+1) as usize, start_y as usize), Piece::Pawn(_));
+
+                        if take_diagonal || en_passant {
                             let game_move = GameMove {
                                 start_x: start_x as usize,
                                 start_y: start_y as usize,

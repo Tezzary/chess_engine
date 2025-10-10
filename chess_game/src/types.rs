@@ -34,6 +34,8 @@ pub struct Board {
     pub king_white_y: usize,
     pub king_black_x: usize,
     pub king_black_y: usize,
+
+    pub can_en_passant: bool,
 }
 
 #[derive(Clone)]

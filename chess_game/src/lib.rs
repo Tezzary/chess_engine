@@ -21,16 +21,12 @@ impl Board {
             king_white_y: 0,
             king_black_x: 0,
             king_black_y: 0,
-            
+
+            can_en_passant: false,
         }
     }
 
     pub fn setup(&mut self) {
-        for y in 0..8 {
-            for x in 0..8 {
-                self.tiles[y][x] = Piece::Blank;
-            }
-        }
         self.tiles[0][0] = Piece::Rook(Team::Black);
         self.tiles[0][1] = Piece::Knight(Team::Black);
         self.tiles[0][2] = Piece::Bishop(Team::Black);
@@ -104,6 +100,8 @@ impl Board {
 
     //trusts that game_move is a valid move and already been checked
     pub fn make_move(&mut self, game_move: GameMove) -> bool {
+        
+        self.can_en_passant = false;
 
         let piece = self.tiles[game_move.start_y][game_move.start_x];
 
@@ -151,10 +149,26 @@ impl Board {
             self.castle_king_black = false;
         }
 
+        if piece == Piece::Pawn(Team::White) {
+            if game_move.start_x != game_move.end_x && self.get_piece(game_move.end_x, game_move.end_y) == Piece::Blank {
+                self.tiles[game_move.end_y+1][game_move.end_x] = Piece::Blank;
+            }
+        }
+        if piece == Piece::Pawn(Team::Black) {
+            if game_move.start_x != game_move.end_x && self.get_piece(game_move.end_x, game_move.end_y) == Piece::Blank {
+                self.tiles[game_move.end_y-1][game_move.end_x] = Piece::Blank;
+            }
+        }
+
+        if matches!(piece, Piece::Pawn(_)) {
+
+            if (game_move.end_y as i64 - game_move.start_y as i64).abs() == 2 {
+                self.can_en_passant = true;
+            }
+        }
+
         self.tiles[game_move.end_y][game_move.end_x] = piece;
         self.tiles[game_move.start_y][game_move.start_x] = Piece::Blank;
-
-
 
         self.last_moved_x = game_move.end_x;
         self.last_moved_y = game_move.end_y;
