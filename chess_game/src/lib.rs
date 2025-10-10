@@ -1,4 +1,4 @@
-mod types;
+pub mod types;
 pub use types::{Board, Piece, Team, GameMove};
 mod pieces;
 
@@ -169,6 +169,10 @@ impl Board {
 
         self.tiles[game_move.end_y][game_move.end_x] = piece;
         self.tiles[game_move.start_y][game_move.start_x] = Piece::Blank;
+        
+        if game_move.promote_to != Piece::Blank {
+            self.tiles[game_move.end_y][game_move.end_x] = game_move.promote_to;
+        }
 
         self.last_moved_x = game_move.end_x;
         self.last_moved_y = game_move.end_y;

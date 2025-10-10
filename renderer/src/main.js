@@ -84,13 +84,15 @@ async function update_board() {
         highlight_background()
 
         function mouse_move(mousemove_event) {
-          console.log(mousemove_event.clientX)
-          console.log(rect.left)
           piece_wrapper.pos.x = clamp((mousemove_event.clientX - rect.left) / CELL_WIDTH - 0.5)
           piece_wrapper.pos.y = clamp((mousemove_event.clientY - rect.top) / CELL_WIDTH - 0.5)
           redraw_pieces()
         }
         async function mouse_up() {
+          let promote_to = "Blank"
+          if (element.piece == "Pawn" && (Math.round(piece_wrapper.pos.y) == 0 || Math.round(piece_wrapper.pos.y) == 7)){
+            promote_to = "Queen"
+          }
           document.removeEventListener("mousemove", mouse_move)
           document.removeEventListener("mouseup", mouse_up)
           reset_background()
@@ -100,6 +102,7 @@ async function update_board() {
             startY: start_y,
             endX: Math.round(piece_wrapper.pos.x),
             endY: Math.round(piece_wrapper.pos.y),
+            promoteTo: promote_to,
           })
           board = await invoke("get_board")
           update_board()

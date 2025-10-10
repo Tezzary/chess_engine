@@ -1,7 +1,7 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 
 use chess_game;
-use chess_game::{GameMove, Piece, Team};
+use chess_game::types::{GameMove, Piece, Team};
 use serde::Serialize;
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -43,7 +43,8 @@ fn get_board(state: State<Arc<Mutex<chess_game::Board>>>) -> Vec<BoardSlot>{
                         piece: String::from("Rook"),
                         team: String::from("White"),
                     });
-                }, Piece::Bishop(Team::White) => { 
+                }, 
+                Piece::Bishop(Team::White) => { 
                     parsed_board.push(BoardSlot { 
                         piece: String::from("Bishop"), 
                         team: String::from("White"), 
@@ -135,11 +136,21 @@ fn get_possible_moves(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usiz
 
 
 #[tauri::command]
-fn move_piece(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start_y: usize, end_x: usize, end_y: usize) {
+fn move_piece(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start_y: usize, end_x: usize, end_y: usize, promote_to: String) {
+
     if start_x == end_x && start_y == end_y {
         return;
     }
     let mut board = state.lock().unwrap();
+
+    let promote_to_piece = match promote_to.as_str() {
+        "Queen" => Piece::Queen(board.current_turn),
+        "Rook" => Piece::Rook(board.current_turn),
+        "Bishop" => Piece::Bishop(board.current_turn),
+        "Knight" => Piece::Knight(board.current_turn),
+        _ => Piece::Blank,
+    };
+
     let piece = board.get_piece(start_x, start_y);
     let game_moves = piece.get_valid_moves(&board, start_x as i64, start_y as i64);
     for game_move in game_moves {
@@ -147,6 +158,10 @@ fn move_piece(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start
             continue;
         }
         if game_move.end_y != end_y {
+            continue;
+        }
+        if game_move.promote_to != promote_to_piece{
+            println!("correct end, incorrect promotion");
             continue;
         }
         //valid move requested
