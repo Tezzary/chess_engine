@@ -26,6 +26,11 @@ impl Board {
     }
 
     pub fn setup(&mut self) {
+        for y in 0..8 {
+            for x in 0..8 {
+                self.tiles[y][x] = Piece::Blank;
+            }
+        }
         self.tiles[0][0] = Piece::Rook(Team::Black);
         self.tiles[0][1] = Piece::Knight(Team::Black);
         self.tiles[0][2] = Piece::Bishop(Team::Black);
@@ -103,12 +108,29 @@ impl Board {
         let piece = self.tiles[game_move.start_y][game_move.start_x];
 
         if piece == Piece::King(Team::White) {
+            //castling king side
+            if game_move.end_x as i64 - game_move.start_x as i64 == 2 {
+                self.tiles[game_move.end_y][game_move.end_x - 1] = Piece::Rook(Team::White);
+                self.tiles[game_move.end_y][7] = Piece::Blank;
+            }
+            if game_move.end_x as i64 - game_move.start_x as i64 == -2 {
+                self.tiles[game_move.end_y][game_move.end_x + 1] = Piece::Rook(Team::White);
+                self.tiles[game_move.end_y][0] = Piece::Blank;
+            }
             self.castle_queen_white = false;
             self.castle_king_white = false;
             self.king_white_x = game_move.end_x;
             self.king_white_y = game_move.end_y;
         }
         if piece == Piece::King(Team::Black) {
+            if game_move.end_x as i64 - game_move.start_x as i64 == 2 {
+                self.tiles[game_move.end_y][game_move.end_x - 1] = Piece::Rook(Team::Black);
+                self.tiles[game_move.end_y][7] = Piece::Blank;
+            }
+            if game_move.end_x as i64 - game_move.start_x as i64 == -2 {
+                self.tiles[game_move.end_y][game_move.end_x + 1] = Piece::Rook(Team::Black);
+                self.tiles[game_move.end_y][0] = Piece::Blank;
+            }
             self.castle_queen_black = false;
             self.castle_king_black = false;
             self.king_black_x = game_move.end_x;
@@ -129,8 +151,6 @@ impl Board {
             self.castle_king_black = false;
         }
 
-        
-
         self.tiles[game_move.end_y][game_move.end_x] = piece;
         self.tiles[game_move.start_y][game_move.start_x] = Piece::Blank;
 
@@ -141,6 +161,10 @@ impl Board {
 
         self.switch_turn();
 
+        false
+    }
+
+    pub fn is_checkmate(&self) -> bool{
         if self.current_turn == Team::White {
             let king_piece = self.get_piece(self.king_white_x, self.king_white_y);
             let in_check = pieces::in_check(&self.current_turn, &self); 
@@ -148,7 +172,6 @@ impl Board {
                           //recursion, king dancing around board
                 let king_has_no_valid_moves = king_piece.get_valid_moves(&self, self.king_white_x as i64, self.king_white_y as i64).len() == 0; 
                 if  in_check && king_has_no_valid_moves && self.get_all_game_moves().len() == 0 {
-                    self.setup();
                     return true;
                 }
             }
@@ -159,13 +182,10 @@ impl Board {
             if in_check {
                 let king_has_no_valid_moves = king_piece.get_valid_moves(&self, self.king_black_x as i64, self.king_black_y as i64).len() == 0;
                 if  in_check && king_has_no_valid_moves && self.get_all_game_moves().len() == 0 {
-                    self.setup();
                     return true;
                 }
             }
         }
-
-        //check for checkmate
         false
     }
 

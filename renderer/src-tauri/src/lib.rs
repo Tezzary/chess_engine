@@ -153,6 +153,9 @@ fn move_piece(state: State<Arc<Mutex<chess_game::Board>>>, start_x: usize, start
         println!("moved piece");
         println!("{}", board.to_string());
         board.make_move(game_move);
+        if board.is_checkmate() {
+            board.setup();
+        }
         return;
     }
 }

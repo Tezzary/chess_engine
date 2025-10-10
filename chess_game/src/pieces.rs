@@ -223,6 +223,66 @@ impl Piece {
         'outer: {
             match self {
                 Piece::King(team) => {
+                    if board.castle_king_white && *team == Team::White {
+                        if is_empty_tile(board, 5, 7) && is_empty_tile(board, 6, 7)  {
+                            if !tile_is_under_attack(&Team::White, board, 4, 7) &&
+                            !tile_is_under_attack(&Team::White, board, 5, 7) &&
+                            !tile_is_under_attack(&Team::White, board, 6, 7) {
+                                let game_move = GameMove{
+                                    start_x: start_x as usize,
+                                    start_y: start_y as usize,
+                                    end_x: (start_x + 2) as usize,
+                                    end_y: (start_y) as usize,
+                                };
+                                valid_moves.push(game_move);
+                            }
+                        }
+                    }
+                    if board.castle_king_black && *team == Team::Black{
+                        if is_empty_tile(board, 5, 0) && is_empty_tile(board, 6, 0)  {
+                            if !tile_is_under_attack(&Team::Black, board, 4, 0) &&
+                            !tile_is_under_attack(&Team::Black, board, 5, 0) &&
+                            !tile_is_under_attack(&Team::Black, board, 6, 0) {
+                                let game_move = GameMove{
+                                    start_x: start_x as usize,
+                                    start_y: start_y as usize,
+                                    end_x: (start_x + 2) as usize,
+                                    end_y: (start_y) as usize,
+                                };
+                                valid_moves.push(game_move);
+                            }
+                        }
+                    }
+                    if board.castle_queen_white && *team == Team::White {
+                        if is_empty_tile(board, 3, 7) && is_empty_tile(board, 2, 7) && is_empty_tile(board, 1, 7)  {
+                            if !tile_is_under_attack(&Team::White, board, 4, 7) &&
+                            !tile_is_under_attack(&Team::White, board, 3, 7) &&
+                            !tile_is_under_attack(&Team::White, board, 2, 7) {
+                                let game_move = GameMove{
+                                    start_x: start_x as usize,
+                                    start_y: start_y as usize,
+                                    end_x: (start_x - 2) as usize,
+                                    end_y: (start_y) as usize,
+                                };
+                                valid_moves.push(game_move);
+                            }
+                        }
+                    }
+                    if board.castle_queen_black && *team == Team::Black{
+                        if is_empty_tile(board, 3, 0) && is_empty_tile(board, 2, 0) && is_empty_tile(board, 1, 0)  {
+                            if !tile_is_under_attack(&Team::Black, board, 4, 0) &&
+                            !tile_is_under_attack(&Team::Black, board, 3, 0) &&
+                            !tile_is_under_attack(&Team::Black, board, 2, 0) {
+                                let game_move = GameMove{
+                                    start_x: start_x as usize,
+                                    start_y: start_y as usize,
+                                    end_x: (start_x - 2) as usize,
+                                    end_y: (start_y) as usize,
+                                };
+                                valid_moves.push(game_move);
+                            }
+                        }
+                    }
 
                     //also need to account for not allowing to move into check
                     for y in -1..=1 {
