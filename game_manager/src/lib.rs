@@ -25,4 +25,7 @@ impl Game {
     fn reset_game(&mut self) {
         self.board = Board::new();
     }
+    fn can_move(&self, team: Team) -> bool {
+        return::
+    }
 }
